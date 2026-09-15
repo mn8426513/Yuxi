@@ -370,7 +370,7 @@ provide('settingsModal', {
       <div class="sidebar-brand" @click.stop>
         <router-link v-if="!sidebarCollapsed" to="/" class="brand-link">
           <img :src="infoStore.organization.avatar" class="brand-avatar" />
-          <span class="brand-name">{{ organizationName }}</span>
+          <span class="brand-name">智能体工作台</span>
         </router-link>
         <button
           v-else
@@ -482,18 +482,7 @@ provide('settingsModal', {
         />
       </div>
       <div class="foo">
-        <div class="github nav-item" @click.stop>
-          <a-tooltip placement="right" :open="sidebarCollapsed ? undefined : false">
-            <template #title>欢迎 Star</template>
-            <a href="https://github.com/xerrors/Yuxi" target="_blank" class="github-link">
-              <GithubOutlined class="icon" />
-              <span class="nav-text">GitHub</span>
-              <span v-if="githubStars > 0" class="github-stars">
-                <span class="star-count">{{ (githubStars / 1000).toFixed(1) }}k</span>
-              </span>
-            </a>
-          </a-tooltip>
-        </div>
+
         <!-- 用户信息组件 -->
         <div class="nav-item user-info" @click.stop>
           <UserInfoComponent :show-role="!sidebarCollapsed">
