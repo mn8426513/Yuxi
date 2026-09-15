@@ -83,39 +83,6 @@
             <span>环境变量</span>
           </div>
         </div>
-
-        <div v-if="showStarCard" class="settings-star-card">
-          <div class="star-card-header">
-            <div class="star-card-badge">
-              <Star :size="12" />
-              <span>支持项目</span>
-            </div>
-            <button
-              class="star-card-close lucide-icon-btn"
-              @click="dismissStarCard"
-              aria-label="关闭 Star 提示"
-            >
-              <X :size="14" />
-            </button>
-          </div>
-          <p class="star-card-title">给 Yuxi 点个 Star</p>
-          <p class="star-card-description">
-            如果这个项目帮到了你，欢迎去 GitHub 点亮一个 Star，让更多人看到它。
-          </p>
-          <a
-            class="star-card-link"
-            :href="projectRepoUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              class="star-card-link-image"
-              src="https://img.shields.io/github/stars/xerrors/Yuxi?label=Yuxi&style=social"
-              alt="GitHub stars for Yuxi"
-            />
-            <ExternalLink :size="13" />
-          </a>
-        </div>
       </div>
 
       <!-- 顶部导航 (Mobile) -->
