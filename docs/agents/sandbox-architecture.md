@@ -60,7 +60,11 @@ Compose 中的 `sandbox-provisioner` 使用以下变量：
 | --- | --- | --- |
 | `PROVISIONER_BACKEND` | `docker`、`kubernetes` 或测试用 `memory` | `docker` |
 | `PROVISIONER_PUBLIC_URL` | 返回给 API/worker 的代理基地址 | `http://sandbox-provisioner:8002` |
-| `SANDBOX_IMAGE` | 动态沙盒镜像 | AIO Sandbox `1.11.0` |
+| `SANDBOX_IMAGE` | 动态沙盒镜像 | `${COMPOSE_PROJECT_NAME:-yuxi}-sandbox:${YUXI_VERSION:-0.7.3}` |
+| `SANDBOX_BASE_IMAGE` | 派生沙箱镜像的 AIO 基础镜像 | AIO Sandbox `1.11.0` |
+| `SANDBOX_DOTNET_VERSION` | 沙箱镜像预装的 .NET SDK 版本 | `8.0.425` |
+| `SANDBOX_PYTHON_DOCX_VERSION` | 沙箱默认 Python 环境预装的 `python-docx` 版本 | `1.2.0` |
+| `SANDBOX_MATPLOTLIB_VERSION` | 沙箱默认 Python 环境预装的 `matplotlib` 版本 | `3.10.9` |
 | `SANDBOX_RUNTIME_PROFILE` | 动态沙盒启用的服务规格 | `core` |
 | `SANDBOX_CONTAINER_PORT` | 沙盒内部 HTTP 端口 | `8080` |
 | `SANDBOX_HEALTH_TIMEOUT_SECONDS` | 创建后的健康检查上限 | `300` |
@@ -82,6 +86,8 @@ Docker backend 对同一 Sandbox generation 的创建和删除保持串行，不
 | `core` | Shell、Python、文件操作和 Shell 中的 Node 命令 | 默认 Agent 任务 |
 | `browser` | `core` 加浏览器、browser MCP 和 VNC | 需要网页自动化的 Agent |
 | `full` | `browser` 加 Jupyter、code-server 和 NodeJS REPL 服务 | 需要完整交互式开发环境的任务 |
+
+Compose 中的 `sandbox-image` 服务从 `SANDBOX_BASE_IMAGE` 构建动态沙箱镜像，显式安装 .NET 在 Ubuntu 22.04 上需要的系统库，并预装 `SANDBOX_DOTNET_VERSION` 指定的 .NET SDK，以及 `SANDBOX_PYTHON_DOCX_VERSION`、`SANDBOX_MATPLOTLIB_VERSION` 指定的 Python 包。该服务使用 `scale: 0`，只负责构建和验证镜像，不常驻运行。`sandbox-provisioner` 使用同一个 `SANDBOX_IMAGE` 创建动态沙盒。
 
 修改规格后重新创建 `sandbox-provisioner`；该设置只影响之后创建的动态沙盒。未知值会阻止 provisioner 启动。规格对应的镜像服务开关由部署拥有，Agent 请求和 `sandbox.env` 不能覆盖。
 
@@ -162,8 +168,16 @@ services:
 开发 Compose 已默认配置 Docker provisioner。初始化 `.env` 后启动：
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
+
+`--build` 会构建带 .NET SDK 的 `sandbox-image`。构建完成后可以直接验证：
+
+```bash
+docker compose run --rm --no-deps sandbox-image
+```
+
+命令输出应为配置的 .NET 8 SDK 版本。
 
 provisioner 只在第一次文件或命令操作时创建动态沙盒，刚启动时看不到沙盒容器是正常的。先检查 provisioner：
 
@@ -195,4 +209,5 @@ docker compose logs --tail=100 sandbox-provisioner
 - [沙盒机制详解](../mechanisms/sandbox.md)
 - [Docker Compose](https://github.com/xerrors/Yuxi/blob/main/docker-compose.yml)
 - [生产 Compose](https://github.com/xerrors/Yuxi/blob/main/docker-compose.prod.yml)
+- [动态沙箱镜像](https://github.com/xerrors/Yuxi/blob/main/docker/sandbox/Dockerfile)
 - [provisioner 实现](https://github.com/xerrors/Yuxi/blob/main/docker/sandbox_provisioner/app.py)

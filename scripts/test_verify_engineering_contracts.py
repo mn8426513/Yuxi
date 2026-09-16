@@ -125,6 +125,8 @@ jobs:
 jobs:
   system:
     steps:
+      - run: docker compose build sandbox-image
+      - run: docker compose run --rm --no-deps sandbox-image
       - run: docker compose exec -T api uv run --no-sync --no-dev pytest test/integration/api/test_system_router_api.py::test_health_endpoint_is_public test/integration/api/test_system_router_api.py::test_readiness_endpoint_proves_core_runtime_dependencies test/integration/api/test_system_router_api.py::test_discovery_and_openapi_declare_full_knowledge_capabilities -q
       - run: docker compose exec -T api uv run --no-sync --no-dev pytest test/integration/services/test_schema_migration_version.py -q
       - run: docker compose exec -T api uv run --no-sync --no-dev pytest test/integration/services/test_agent_request_queue_concurrency.py -q
@@ -461,6 +463,24 @@ jobs:
                 )
                 self.assertTrue(
                     any("缺少实际 run step" in error for error in self._errors())
+                )
+
+    def test_sandbox_dotnet_image_probe_cannot_be_removed(self) -> None:
+        path = self.root / ".github/workflows/system-tests.yml"
+        original = path.read_text(encoding="utf-8")
+        for command in (
+            "docker compose build sandbox-image",
+            "docker compose run --rm --no-deps sandbox-image",
+        ):
+            with self.subTest(command=command):
+                path.write_text(
+                    original.replace(f"      - run: {command}\n", ""), encoding="utf-8"
+                )
+                self.assertTrue(
+                    any(
+                        "缺少实际 run step" in error and command in error
+                        for error in self._errors()
+                    )
                 )
 
     def test_authenticated_system_steps_cannot_drop_credentials(self) -> None:

@@ -326,6 +326,23 @@ if (-not (Test-SkipExistingImage $sandboxImage)) {
 }
 
 Write-Host ""
+Write-Host "🔨 Building sandbox image with .NET SDK..." -ForegroundColor Cyan
+docker compose build sandbox-image
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "❌ Failed to build sandbox image" -ForegroundColor Red
+    exit 1
+}
+Write-Host "✅ Successfully built sandbox image" -ForegroundColor Green
+
+Write-Host "🔎 Verifying .NET SDK in sandbox image..." -ForegroundColor Cyan
+docker compose run --rm --no-deps sandbox-image
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "❌ .NET SDK verification failed in the sandbox image" -ForegroundColor Red
+    exit 1
+}
+Write-Host "✅ .NET SDK is available in the sandbox image" -ForegroundColor Green
+
+Write-Host ""
 Write-Host "🎉 Initialization complete!" -ForegroundColor Green
 Write-Host "==========================" -ForegroundColor Green
 Write-Host "You can now run: docker compose up -d --build" -ForegroundColor Cyan

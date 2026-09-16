@@ -198,6 +198,20 @@ services:
       postgres:
         condition: service_healthy
 
+  sandbox-image:
+    build:
+      context: ./docker/sandbox
+      args:
+        SANDBOX_BASE_IMAGE: ${SANDBOX_BASE_IMAGE:-enterprise-public-cn-beijing.cr.volces.com/vefaas-public/all-in-one-sandbox:1.11.0}
+        DOTNET_VERSION: ${SANDBOX_DOTNET_VERSION:-8.0.425}
+        PYTHON_DOCX_VERSION: ${SANDBOX_PYTHON_DOCX_VERSION:-1.2.0}
+        MATPLOTLIB_VERSION: ${SANDBOX_MATPLOTLIB_VERSION:-3.10.9}
+    image: ${SANDBOX_IMAGE:-${COMPOSE_PROJECT_NAME:-yuxi}-sandbox:${YUXI_VERSION:-0.7.3}}
+    scale: 0
+    network_mode: none
+    entrypoint: ["/opt/dotnet/dotnet"]
+    command: ["--version"]
+
   sandbox-provisioner:
     build:
       context: ./docker/sandbox_provisioner
@@ -224,7 +238,7 @@ services:
       - PROVISIONER_BACKEND=${SANDBOX_PROVISIONER_BACKEND:-docker}
       - PROVISIONER_PUBLIC_URL=${SANDBOX_PROVISIONER_URL:-http://sandbox-provisioner:8002}
       - SANDBOX_PROVISIONER_TOKEN=${SANDBOX_PROVISIONER_TOKEN:?Set SANDBOX_PROVISIONER_TOKEN in .env}
-      - SANDBOX_IMAGE=${SANDBOX_IMAGE:-enterprise-public-cn-beijing.cr.volces.com/vefaas-public/all-in-one-sandbox:1.11.0}
+      - SANDBOX_IMAGE=${SANDBOX_IMAGE:-${COMPOSE_PROJECT_NAME:-yuxi}-sandbox:${YUXI_VERSION:-0.7.3}}
       - SANDBOX_RUNTIME_PROFILE=${SANDBOX_RUNTIME_PROFILE:-core}
       - SANDBOX_CONTAINER_PORT=${SANDBOX_CONTAINER_PORT:-8080}
       - MEMORY_SANDBOX_URL_TEMPLATE=${MEMORY_SANDBOX_URL_TEMPLATE:-http://agent-sandbox:8000}

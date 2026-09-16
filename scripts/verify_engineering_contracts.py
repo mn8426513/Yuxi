@@ -130,6 +130,8 @@ WORKFLOW_CONTRACTS = (
     WorkflowContract(
         path=".github/workflows/system-tests.yml",
         commands=(
+            "docker compose build sandbox-image",
+            "docker compose run --rm --no-deps sandbox-image",
             "docker compose exec -T api uv run --no-sync --no-dev pytest test/integration/api/test_system_router_api.py::test_health_endpoint_is_public test/integration/api/test_system_router_api.py::test_readiness_endpoint_proves_core_runtime_dependencies test/integration/api/test_system_router_api.py::test_discovery_and_openapi_declare_full_knowledge_capabilities -q",
             "docker compose exec -T api uv run --no-sync --no-dev pytest test/integration/services/test_schema_migration_version.py -q",
             "docker compose exec -T api uv run --no-sync --no-dev pytest test/integration/services/test_agent_request_queue_concurrency.py -q",

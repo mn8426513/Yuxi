@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 import shutil
 import uuid
 
@@ -70,6 +71,64 @@ async def test_ephemeral_remote_skill_sandbox_does_not_create_persistent_uid_roo
         finally:
             shutil.rmtree(user_root, ignore_errors=True)
             shutil.rmtree(skill_root, ignore_errors=True)
+
+
+async def test_dynamic_agent_sandbox_exposes_dotnet_sdk():
+    """动态 Agent 沙箱镜像必须能够直接执行预装的 .NET SDK。"""
+    suffix = uuid.uuid4().hex
+    uid = f"pytest-dotnet-{suffix}"
+    scope = f"pytest-dotnet-runtime-{suffix}"
+    backend = ProvisionerSandboxBackend(
+        thread_id=scope,
+        uid=uid,
+        inherit_env=False,
+    )
+    try:
+        result = await asyncio.to_thread(backend.execute, "dotnet --version")
+        assert result.exit_code == 0, result.output
+        assert re.fullmatch(r"8\.0\.\d+", result.output.strip()), result.output
+    finally:
+        try:
+            await asyncio.to_thread(
+                get_sandbox_provider().release,
+                scope,
+                uid=uid,
+                clear_cache_on_delete_failure=True,
+            )
+        finally:
+            _cleanup_user_storage(uid)
+
+
+async def test_dynamic_agent_sandbox_exposes_python_document_toolchain():
+    """动态 Agent 沙箱默认 Python 必须能直接导入 python-docx 与 matplotlib。"""
+    suffix = uuid.uuid4().hex
+    uid = f"pytest-python-docx-{suffix}"
+    scope = f"pytest-python-docx-runtime-{suffix}"
+    backend = ProvisionerSandboxBackend(
+        thread_id=scope,
+        uid=uid,
+        inherit_env=False,
+    )
+    try:
+        result = await asyncio.to_thread(
+            backend.execute,
+            "python -c 'import docx, matplotlib; "
+            'print("python-docx=" + docx.__version__); '
+            'print("matplotlib=" + matplotlib.__version__)\'',
+        )
+        assert result.exit_code == 0, result.output
+        assert "python-docx=1.2.0" in result.output
+        assert "matplotlib=3.10.9" in result.output
+    finally:
+        try:
+            await asyncio.to_thread(
+                get_sandbox_provider().release,
+                scope,
+                uid=uid,
+                clear_cache_on_delete_failure=True,
+            )
+        finally:
+            _cleanup_user_storage(uid)
 
 
 async def test_two_sandboxes_share_project_files_but_not_runtime_state():

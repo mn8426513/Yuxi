@@ -329,6 +329,23 @@ if ! skip_existing_image "$sandbox_image"; then
 fi
 
 echo ""
+echo "🔨 Building sandbox image with .NET SDK..."
+if docker compose build sandbox-image; then
+    echo "✅ Successfully built sandbox image"
+else
+    echo "❌ Failed to build sandbox image"
+    exit 1
+fi
+
+echo "🔎 Verifying .NET SDK in sandbox image..."
+if docker compose run --rm --no-deps sandbox-image; then
+    echo "✅ .NET SDK is available in the sandbox image"
+else
+    echo "❌ .NET SDK verification failed in the sandbox image"
+    exit 1
+fi
+
+echo ""
 echo "🎉 Initialization complete!"
 echo "=========================="
 echo "You can now run: docker compose up -d --build"
